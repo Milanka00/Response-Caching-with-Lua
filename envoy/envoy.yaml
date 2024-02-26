@@ -34,6 +34,10 @@ static_resources:
                     -- Call Lua script function for response handling
                     handle_response(response_handle)
                 end
+          - name: envoy.router  # Add a router filter after the Lua filter
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
 
   clusters:
   - name: service_cluster
@@ -41,7 +45,12 @@ static_resources:
     type: STRICT_DNS
     lb_policy: ROUND_ROBIN
     http2_protocol_options: {}
-    hosts:
-    - socket_address:
-        address: your_backend_address
-        port_value: 80
+    load_assignment:
+      cluster_name: service_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: new_go_backend   # Change to your Go backend service name
+                port_value: 8000
