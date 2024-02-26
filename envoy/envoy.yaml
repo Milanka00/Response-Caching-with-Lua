@@ -26,12 +26,15 @@ static_resources:
               "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
               inline_code: |
                 function envoy_on_request(request_handle)
-                  -- Lua script logic
+                    -- Call Lua script function for request handling
+                    handle_request(request_handle)
                 end
 
                 function envoy_on_response(response_handle)
-                  -- Lua script logic
+                    -- Call Lua script function for response handling
+                    handle_response(response_handle)
                 end
+
   clusters:
   - name: service_cluster
     connect_timeout: 0.25s

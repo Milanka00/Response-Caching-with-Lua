@@ -12,8 +12,8 @@ func main() {
     http.HandleFunc("/privatecache", PrivateCacheHandler)
 
     // Start server
-    fmt.Println("Server is listening on port 8080...")
-    http.ListenAndServe(":8080", nil)
+    fmt.Println("Server is listening on port 8000...")
+    http.ListenAndServe(":8000", nil)
 }
 
 // Handler for "/nocache" route with Cache-Control: no-store header
