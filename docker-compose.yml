@@ -1,16 +1,6 @@
 version: '3'
 
 services:
-  # envoy:
-  #   build:
-  #     context: ./envoy
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8080:8080"
-  #   volumes:
-  #     - ./envoy:/etc/envoy
-  #   networks:
-  #     - my-network
   envoy_redis:
     build:
       context: ./envoy-redis
@@ -21,6 +11,7 @@ services:
       - ./envoy:/etc/envoy
     networks:
       - my-network
+
   redis:
     image: redis
     ports:
@@ -34,6 +25,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    networks:
+      - my-network
+
+  openresty:
+    image: openresty/openresty:1.25.3.1-2-alpine-fat
+    ports:
+      - "8081:80"
     networks:
       - my-network
 
