@@ -27,32 +27,48 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
                       inline_code: |
-                        -- Lua filter configuration
-                        -- Called on the response path.
-                        function envoy_on_response(response_handle)
-                          local response_body = response_handle:body()
+                        
+                          -- Lua filter configuration
+                          -- Called on the response path.
+                          function envoy_on_response(response_handle)
+                              print("inside the response path")
+                              local response_body = response_handle:body()
+                              print("extracted the body")
+                              
+                              print("imported redis connection")
+                              local redis = require("resty.redis")
+                              local red = redis:new()
+                              print("new redis connection instance")
 
-                          local redis = require("resty.redis")
-                          local red = redis:new()
+                              red:set_timeout(1000)  -- 1 second timeout
 
-                          red:set_timeout(1000)  -- 1 second timeout
+                              -- Connecting to Redis
+                              local ok, err = red:connect("redis", 6379)
+                              if not ok then
+                                  print("failed to connect to redis: ", err)
+                                  return
+                              else
+                                  print("connected to redis successfully")
+                              end
 
-                          -- Connecting to Redis
-                          local ok, err = red:connect("redis", 6379)
-                          if not ok then
-                            ngx.log(ngx.ERR, "failed to connect to redis: ", err)
-                            return
+                              -- Saving the response to Redis
+                              local res, err = red:set("response_key", response_body)
+                              if not res then
+                                  print("failed to save the response in redis: ", err)
+                              else
+                                  print("response saved in redis successfully")
+                              end
+
+                              -- Closing the Redis connection
+                              local ok, err = red:close()
+                              if not ok then
+                                  print("failed to close redis connection: ", err)
+                              else
+                                  print("redis connection closed successfully")
+                              end
                           end
 
-                          -- Saving the response to Redis
-                          local res, err = red:set("response_key", response_body)
-                          if not res then
-                            ngx.log(ngx.ERR, "failed to save the response in redis: ", err)
-                          end
 
-                          -- Closing the Redis connection
-                          red:close()
-                        end
             
                       
                   - name: envoy.filters.http.router
