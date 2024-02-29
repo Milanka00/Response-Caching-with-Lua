@@ -34,10 +34,30 @@ static_resources:
                                       request_path = request_handle:headers():get(":path")
                                       request_handle:logInfo("Received request for path: " .. tostring(request_path))
 
+                                          local saved_response = responses[request_path]
+                                          if saved_response then
+                                              -- Serve the saved response
+                                                 
+                                                  -- Serve the saved response
+                                                  -- request_handle:respond(headers, saved_response)
+                                                  request_handle:logInfo("Served saved response for path: " .. tostring(request_path))
+                                                  
+                                                  -- Set flag to indicate that response is served
+                                                  response_saved = true
+                                           return
+                                          end
+                                              -- No saved response found, continue with the request
+                                              request_handle:logInfo("No saved response found for path: " .. tostring(request_path))
+                                          
+
                               
                                    end
 
                                   function envoy_on_response(response_handle)
+
+                                    if response_saved then
+                                        return
+                                    end
 
                                   response_handle:logInfo("inside the response path")
                                   local response_body = response_handle:body()
