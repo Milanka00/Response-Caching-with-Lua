@@ -35,8 +35,9 @@ static_resources:
                               local response_body = response_handle:body()
                               print("extracted the body")
                               
+                              
+                              local redis = require("redis")
                               print("imported redis connection")
-                              local redis = require("resty.redis")
                               local red = redis:new()
                               print("new redis connection instance")
 
