@@ -27,51 +27,30 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
                       inline_code: |
-                        
-                          -- Lua filter configuration
-                          -- Called on the response path.
-                          function envoy_on_response(response_handle)
-                              print("inside the response path")
-                              local response_body = response_handle:body()
-                              print("extracted the body")
-                              
-                              
-                              local redis = require("redis")
-                              print("imported redis connection")
-                              local red = redis:new()
-                              print("new redis connection instance")
+                                  local responses = {}
 
-                              red:set_timeout(1000)  -- 1 second timeout
-
-                              -- Connecting to Redis
-                              local ok, err = red:connect("redis", 6379)
-                              if not ok then
-                                  print("failed to connect to redis: ", err)
-                                  return
-                              else
-                                  print("connected to redis successfully")
-                              end
-
-                              -- Saving the response to Redis
-                              local res, err = red:set("response_key", response_body)
-                              if not res then
-                                  print("failed to save the response in redis: ", err)
-                              else
-                                  print("response saved in redis successfully")
-                              end
-
-                              -- Closing the Redis connection
-                              local ok, err = red:close()
-                              if not ok then
-                                  print("failed to close redis connection: ", err)
-                              else
-                                  print("redis connection closed successfully")
-                              end
-                          end
+                                  function envoy_on_response(response_handle)
+                                  response_handle:logInfo("inside the response path")
+                                  local response_body = response_handle:body()
+                                  response_handle:logInfo("Extracted the body", response_handle:body())
+                                  response_handle:headers():add("response_body_size", response_handle:body():length())
+                                  response_handle:logInfo("Extracted the body size" .. tostring(response_handle:body():length()))
+                                  response_handle:logInfo("Extracted the body " .. tostring(response_handle:bodyChunks()))
+                                  
+                                
+                                  -- Storing response in local memory
+                                  -- responses["response_key"] = response_body
+                                  -- local response_length = response_handle:body():length()
+                                  -- response_handle:logInfo("Stored response length:", response_length)
+                                  -- response_handle:logInfo("Stored response in local memory:", responses["response_key"])
+                                  end
 
 
-            
-                      
+
+                          
+
+
+
                   - name: envoy.filters.http.router
   clusters:
     - name: backend_cluster

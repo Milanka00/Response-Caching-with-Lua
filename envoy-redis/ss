@@ -1,0 +1,15 @@
+                        -- Lua filter configuration
+                        local responses = {}
+                        -- Called on the response path.
+                        function envoy_on_response(response_handle)
+                            
+                            print("inside the response path")
+                            local response_body = response_handle:body()
+                            print("extracted the body")
+
+                            -- Storing response in local memory
+                            responses["response_key"] = response_body
+
+                            -- Printing stored response
+                            print("Stored response in local memory:", responses["response_key"])
+                        end
