@@ -28,7 +28,25 @@ static_resources:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
                       inline_code: |
                         -- Load the redis.lua script
-                        dofile("/etc/envoy/scripts/redis.lua")
+                        package.path = "/etc/scripts/?.lua;" .. package.path
+                        dofile("/etc/scripts/redis.lua")
+                        pcall(require, "luarocks.require")
+
+                        local redis = require 'redis'
+
+                                local params = {
+                                    host = '127.0.0.1',
+                                    port = 6379,
+                                }
+
+                                local client = redis.connect(params)
+                                client:select(15) -- for testing 
+
+                                client:set('foo', 'bar')
+                                local value = client:get('foo')
+
+                                print(value)
+
                   - name: envoy.filters.http.router
   clusters:
     - name: backend_cluster
