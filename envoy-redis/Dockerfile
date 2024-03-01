@@ -9,7 +9,7 @@ RUN mkdir -p /etc/scripts
 
 # Copy the redis.lua script into the image
 COPY redis.lua /etc/scripts/
-COPY socket.lua /etc/scripts/
+COPY socket /etc/scripts/
 
 # Specify the command to run on container startup
 CMD ["envoy", "-c", "/etc/envoy.yaml"]

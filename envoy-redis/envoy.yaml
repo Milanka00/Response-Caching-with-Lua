@@ -29,6 +29,7 @@ static_resources:
                       inline_code: |
                         -- Load the redis.lua script
                         package.path = "/etc/scripts/?.lua;" .. package.path
+                        package.cpath = "/etc/scripts/? " .. package.cpath
                         dofile("/etc/scripts/redis.lua")
                         pcall(require, "luarocks.require")
 
