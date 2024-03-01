@@ -1,0 +1,56 @@
+responses = {}
+
+function envoy_on_request(request_handle)
+    -- Access the request path
+    request_path = request_handle:headers():get(":path")
+    request_handle:logInfo("Received request for path: " .. tostring(request_path))
+
+        local saved_response = responses[request_path]
+        if saved_response then
+           -- Set flag to indicate that response is served
+                response_saved = true
+            -- Serve the saved response
+                   local saved_response_str = saved_response:getBytes(0, saved_response:length())
+                -- Serve the saved response
+                request_handle:respond(
+                  {
+                    [":status"] = "200",
+                    ["content-type"] = "application/json;charset=UTF-8"
+                  },
+                  saved_response_str)
+                request_handle:logInfo("Served saved response for path: " .. tostring(request_path))
+                
+               
+         return
+        end
+            -- No saved response found, continue with the request
+            request_handle:logInfo("No saved response found for path: " .. tostring(request_path))
+        
+
+
+ end
+
+function envoy_on_response(response_handle)
+
+  if response_saved then
+      return
+  end
+
+response_handle:logInfo("inside the response path")
+local response_body = response_handle:body()
+local response_size = response_handle:body():length()
+response_handle:logInfo("Extracted the body " .. tostring(response_size))
+response_handle:logInfo("Extracted the body " .. tostring(response_handle:body()))
+
+
+-- take the path as it is a global variable now
+local response_path=request_path
+
+responses[response_path] = response_body
+response_handle:logInfo("Saved response for path: " .. tostring(response_path))
+
+-- response_handle:logInfo("Extracted the body size " .. tostring(response_handle:body():length()))
+-- response_handle:logInfo("Extracted the body size from the table" .. tostring(responses[request_path]:length()))
+-- response_handle:logInfo("Extracted the body " .. tostring(response_handle:bodyChunks()))
+
+end
