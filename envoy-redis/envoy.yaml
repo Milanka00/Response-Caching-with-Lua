@@ -29,27 +29,67 @@ static_resources:
                       inline_code: |
                         -- Load the redis.lua script
                         package.path = "/etc/scripts/?.lua;" .. package.path
-                     
-
-                        -- dofile("/etc/scripts/redis.lua")
-                        -- pcall(require, "luarocks.require")
 
                         local redis = require 'redis'
                             
-                                local params = {
-                                    host = 'redis',
-                                    port =  6379,
-                                }
-
-                                local client = redis.connect(params)
-                                client:select(15) -- for testing 
-
-                                client:set('foo', 'bar')
-                                local value = client:get('foo')
-
-                                print(value)
+                          local params = {
+                              host = 'redis',
+                              port =  6379,
+                          }
+                            -- creating a global client
+                          client = redis.connect(params)
                             
+                            function envoy_on_request(request_handle)
+                                -- Access the request path
+                                request_path = request_handle:headers():get(":path")
+                                request_handle:logInfo("Received request for path: " .. tostring(request_path)) 
 
+                                -- check for cache
+                                  local cached_response = client:get(request_path)  
+
+                                      if cached_response then
+                                          request_handle:logInfo("Found saved response for path: " .. tostring(request_path))
+                                                  -- Respond with the cached response
+                                                     request_handle:respond(
+                                                      {[":status"] = "403",
+                                                      ["upstream_foo"] = headers["foo"]},
+                                                      "nope")
+                                                -- Stop requesting backend
+                                                request_handle:logInfo("Responded with cached response")
+                                          
+                                      else
+                                          request_handle:logInfo("No Saved response for path: " .. tostring(request_path))
+                                         
+                                      end                                                                 
+
+                             end
+
+                            function envoy_on_response(response_handle)
+                            
+                              response_handle:logInfo("inside the response path")
+                              local response_body = response_handle:body()
+                              -- need th below syntax for taking a string
+                              local response = tostring(response_body:getBytes(0, response_body:length()))
+                              local response_size = response_handle:body():length()
+                              
+                              response_handle:logInfo("Extracted the body " .. tostring(response_size))
+                              response_handle:logInfo("Extracted the body: " .. tostring(response))
+
+
+                              -- take the path as it is a global variable now
+                              local response_path=request_path
+
+                              -- save the response taking the path as the key value
+                                
+                                client:select(15) -- for test
+                                client:set(response_path, response)
+                                local value = client:get(response_path)
+
+                                -- print(value)
+                                response_handle:logInfo("Saved response for path: " .. tostring(value))
+
+                             end
+ 
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
