@@ -1,0 +1,21 @@
+                        -- Load the redis.lua script
+                        package.path = "/etc/scripts/?.lua;" .. package.path
+                     
+
+                        -- dofile("/etc/scripts/redis.lua")
+                        -- pcall(require, "luarocks.require")
+
+                        local redis = require 'redis'
+                            
+                                local params = {
+                                    host = 'redis',
+                                    port =  6379,
+                                }
+
+                                local client = redis.connect(params)
+                                client:select(15) -- for testing 
+
+                                client:set('foo', 'bar')
+                                local value = client:get('foo')
+
+                                print(value)

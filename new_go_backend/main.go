@@ -10,6 +10,7 @@ func main() {
     http.HandleFunc("/nocache", NoCacheHandler)
     http.HandleFunc("/publiccache", PublicCacheHandler)
     http.HandleFunc("/privatecache", PrivateCacheHandler)
+    http.HandleFunc("/getresponse", getresponseWithoutHeaders)
 
     // Start server
     fmt.Println("Server is listening on port 8000...")
@@ -32,4 +33,8 @@ func PublicCacheHandler(w http.ResponseWriter, r *http.Request) {
 func PrivateCacheHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Cache-Control", "private, max-age=3600")
     fmt.Fprintf(w, "Response with Cache-Control: private, max-age=3600")
+}
+
+func getresponseWithoutHeaders(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "Response without cache control headers")
 }
