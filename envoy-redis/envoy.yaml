@@ -50,10 +50,13 @@ static_resources:
                                       if cached_response then
                                           request_handle:logInfo("Found saved response for path: " .. tostring(request_path))
                                                   -- Respond with the cached response
-                                                     request_handle:respond(
-                                                      {[":status"] = "403",
-                                                      ["upstream_foo"] = headers["foo"]},
-                                                      "nope")
+                                                    request_handle:respond(
+                                                      {
+                                                        [":status"] = "200",
+                                                        ["content-type"] = "application/json; charset=UTF-8"
+                                                      },
+                                                       cached_response
+                                                    )
                                                 -- Stop requesting backend
                                                 request_handle:logInfo("Responded with cached response")
                                           
@@ -65,6 +68,13 @@ static_resources:
                              end
 
                             function envoy_on_response(response_handle)
+                                                            -- take the path as it is a global variable now
+                              local response_path=request_path
+                              local available_response = client:get(response_path)  
+
+                                if available_response then
+                                return
+                                end
                             
                               response_handle:logInfo("inside the response path")
                               local response_body = response_handle:body()
@@ -75,9 +85,6 @@ static_resources:
                               response_handle:logInfo("Extracted the body " .. tostring(response_size))
                               response_handle:logInfo("Extracted the body: " .. tostring(response))
 
-
-                              -- take the path as it is a global variable now
-                              local response_path=request_path
 
                               -- save the response taking the path as the key value
                                 
