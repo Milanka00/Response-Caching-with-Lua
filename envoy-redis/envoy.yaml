@@ -89,7 +89,10 @@ static_resources:
                               -- save the response taking the path as the key value
                                 
                                 client:select(15) -- for test
-                                client:set(response_path, response)
+                                -- client:set(response_path, response)
+                                    local ttl = 60 -- Set TTL to 1 min
+                                    client:setex(response_path, ttl, response)
+
                                 local value = client:get(response_path)
 
                                 -- print(value)
