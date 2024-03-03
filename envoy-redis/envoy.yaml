@@ -49,11 +49,13 @@ static_resources:
 
                                       if cached_response then
                                           request_handle:logInfo("Found saved response for path: " .. tostring(request_path))
+                                          local ttl = client:ttl(request_path)
                                                   -- Respond with the cached response
                                                     request_handle:respond(
                                                       {
                                                         [":status"] = "200",
-                                                        ["content-type"] = "application/json; charset=UTF-8"
+                                                        ["content-type"] = "application/json; charset=UTF-8",
+                                                        ["Cache-TTL"] = tostring(ttl)
                                                       },
                                                        cached_response
                                                     )
