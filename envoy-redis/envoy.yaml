@@ -50,12 +50,15 @@ static_resources:
                                       if cached_response then
                                           request_handle:logInfo("Found saved response for path: " .. tostring(request_path))
                                           local ttl = client:ttl(request_path)
+                                          local cached_date_header = client:get(request_path .. "_date")
                                                   -- Respond with the cached response
                                                     request_handle:respond(
                                                       {
                                                         [":status"] = "200",
                                                         ["content-type"] = "application/json; charset=UTF-8",
-                                                        ["Cache-TTL"] = tostring(ttl)
+                                                        ["Cache-TTL"] = tostring(ttl),
+                                                        ["Date-generated"] = cached_date_header
+                                                        
                                                       },
                                                        cached_response
                                                     )
@@ -126,6 +129,11 @@ static_resources:
                                 -- client:set(response_path, response)
                                     
                                     client:setex(response_path, ttl, response)
+
+                                    local date_header = response_handle:headers():get("Date")
+                                      if date_header then
+                                          client:set(response_path .. "_date", date_header)
+                                      end
 
                                 local value = client:get(response_path)
 

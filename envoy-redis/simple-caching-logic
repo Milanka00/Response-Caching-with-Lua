@@ -30,7 +30,7 @@
                                                       },
                                                        cached_response
                                                     )
-                                                -- Stop requesting backend
+                                                
                                                 request_handle:logInfo("Responded with cached response")
                                           
                                       else
