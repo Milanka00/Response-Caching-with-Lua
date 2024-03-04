@@ -42,13 +42,34 @@ static_resources:
                             function envoy_on_request(request_handle)
                                 -- Access the request path
                                 request_path = request_handle:headers():get(":path")
-                                request_handle:logInfo("Received request for path: " .. tostring(request_path)) 
+                                request_handle:logInfo("Received request for path: " .. tostring(request_path))
+                                local if_modified_since = request_handle:headers():get("If-Modified-Since") 
 
                                 -- check for cache
                                   local cached_response = client:get(request_path)  
 
                                       if cached_response then
                                           request_handle:logInfo("Found saved response for path: " .. tostring(request_path))
+
+                                            local cached_date_header = client:get(request_path .. "_date")
+
+                                              -- Check if If-Modified-Since header is present 
+                                              if if_modified_since and cached_date_header then
+                                                  if if_modified_since <= cached_date_header then
+                                                      -- Cached response is still fresh
+                                                      request_handle:respond(
+                                                          {
+                                                              [":status"] = "304",
+                                                              ["content-type"] = "application/json; charset=UTF-8",
+                                                              ["Date-generated"] = cached_date_header
+                                                          }
+                                                      )
+                                                      request_handle:logInfo("Responded with 304 Not Modified")
+                                                      return
+                                                  end
+                                              end
+
+
                                           local ttl = client:ttl(request_path)
                                           local cached_date_header = client:get(request_path .. "_date")
                                                   -- Respond with the cached response
