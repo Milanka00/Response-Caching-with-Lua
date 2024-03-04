@@ -81,6 +81,35 @@ static_resources:
                                local cache_control_header = response_handle:headers():get("Cache-Control")
                                response_handle:logInfo("cache control header from backend: " .. tostring(cache_control_header))
 
+                            -- Set default TTL
+                            local ttl = 60  -- Set TTL to 1 minute
+
+                            
+                            if cache_control_header then
+                                
+                                if cache_control_header:find("no%-store") then
+                                    response_handle:logInfo("Caching won't be available")
+                                    return
+                                
+                                elseif cache_control_header:find("public") then
+                                    response_handle:logInfo("Caching for public header")
+                                   
+                                    local max_age = cache_control_header:match("max%-age=(%d+)")
+                                    response_handle:logInfo("Cache TTL from max-age: " .. tostring(max_age))
+                                    if max_age then
+                                        ttl = tonumber(max_age)
+                                    end
+                                end
+                            else
+                                -- Cache-Control header is not present
+                                response_handle:logInfo("Cache-Control headers are not present")
+                            end
+
+                            
+                            response_handle:logInfo("Using TTL for caching: " .. tostring(ttl))
+
+
+                                                      
                               response_handle:logInfo("inside the response path")
                               local response_body = response_handle:body()
                               -- need th below syntax for taking a string
@@ -95,7 +124,7 @@ static_resources:
                                 
                                 client:select(15) -- for test
                                 -- client:set(response_path, response)
-                                    local ttl = 60 -- Set TTL to 1 min
+                                    
                                     client:setex(response_path, ttl, response)
 
                                 local value = client:get(response_path)
