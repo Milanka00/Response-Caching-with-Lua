@@ -3,28 +3,37 @@ version: '3'
 services:
   envoy:
     build:
-      context: ../envoy
+      context: ./envoy
       dockerfile: Dockerfile
+    image: envoy-backend-envoy:latest 
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
       - ./envoy:/etc/envoy
     networks:
       - my-network
-
-
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   new_go_backend:
     build:
       context: ../new_go_backend
       dockerfile: Dockerfile
+    image: envoy-backend-new_go_backend:latest  
     ports:
       - "8000:8000"
     networks:
       - my-network
-
-
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
 
 networks:
   my-network:
-    driver: bridge
+    driver: overlay
+    attachable: true 
