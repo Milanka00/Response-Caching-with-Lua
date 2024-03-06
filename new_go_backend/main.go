@@ -5,10 +5,17 @@ import (
     "net/http"
     "os"
     "strconv"
+    "sync"
     "time"
 )
 
+var payload []byte
+var once sync.Once
+
 func main() {
+    // Generate payload
+    generatePayload()
+
     // Define routes
     http.HandleFunc("/nocache", func(w http.ResponseWriter, r *http.Request) {
         NoCacheHandler(w, r)
@@ -31,26 +38,26 @@ func main() {
 // Handler for "/nocache" route with Cache-Control: no-store header
 func NoCacheHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Cache-Control", "no-store")
-    fmt.Fprintf(w, "Response with Cache-Control: no-store")
+    w.Write(payload)
     sleepBeforeRespond()
 }
 
 // Handler for "/publiccache" route with Cache-Control: public header
 func PublicCacheHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Cache-Control", "public, max-age=3600")
-    fmt.Fprintf(w, "Response with Cache-Control: public, max-age=3600")
+    w.Write(payload)
     sleepBeforeRespond()
 }
 
 // Handler for "/privatecache" route with Cache-Control: private header
 func PrivateCacheHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Cache-Control", "private, max-age=3600")
-    fmt.Fprintf(w, "Response with Cache-Control: private, max-age=3600")
+    w.Write(payload)
     sleepBeforeRespond()
 }
 
 func getresponseWithoutHeaders(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Response without cache control headers")
+    w.Write(payload)
     sleepBeforeRespond()
 }
 
@@ -61,4 +68,13 @@ func sleepBeforeRespond() {
         sleepTime = 15
     }
     time.Sleep(time.Duration(sleepTime) * time.Second)
+}
+
+func generatePayload() {
+    once.Do(func() {
+        payload = make([]byte, 100)
+        for i := range payload {
+            payload[i] = 'x'
+        }
+    })
 }
