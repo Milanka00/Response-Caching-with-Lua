@@ -1,11 +1,11 @@
-version: '3'
+version: '3.7'
 
 services:
   envoy:
     build:
       context: ./envoy
       dockerfile: Dockerfile
-    image: envoy-backend-envoy:latest 
+    #image: envoy-backend-envoy:latest 
     ports:
       - "8081:8080"
     volumes:
@@ -22,7 +22,7 @@ services:
     build:
       context: ../new_go_backend
       dockerfile: Dockerfile
-    image: envoy-backend-new_go_backend:latest  
+    #image: envoy-backend-new_go_backend:latest  
     ports:
       - "8000:8000"
     networks:
@@ -35,5 +35,5 @@ services:
 
 networks:
   my-network:
-    driver: overlay
-    attachable: true 
+    driver: bridge
+    #attachable: true 
